@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#07061a" />
+<title>BT21: Звёздный путь Таты</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="app">
+  <div id="game-wrap">
+    <canvas id="game" width="960" height="540"></canvas>
+
+    <!-- HUD -->
+    <div id="hud" class="hidden">
+      <div class="hud-pill hud-left">
+        <span id="hud-level">Уровень 1</span>
+        <span class="hud-dot"></span>
+        <span id="hud-char">TATA</span>
+      </div>
+      <div class="hud-pill hud-center">
+        <span id="hud-items">Осколки: 0/3</span>
+      </div>
+      <div class="hud-pill hud-right">
+        <span id="hud-lives">❤❤❤</span>
+        <span class="hud-dot"></span>
+        <span id="hud-score">0</span>
+        <span class="hud-dot"></span>
+        <span id="hud-best">0</span>
+      </div>
+    </div>
+
+    <!-- Hint -->
+    <div id="hint" class="hidden">
+      <kbd>←</kbd><kbd>→</kbd> / <kbd>A</kbd><kbd>D</kbd> движение
+      <span class="hint-sep"></span>
+      <kbd>Space</kbd> / <kbd>W</kbd> прыжок
+      <span class="hint-sep"></span>
+      <kbd>Esc</kbd> пауза
+    </div>
+
+    <!-- Menu overlay -->
+    <div id="menu" class="overlay">
+      <div class="menu-bg-orbs" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+
+      <div class="menu-shell">
+        <div class="menu-brand">
+          <div class="brand-badge">BT21</div>
+          <h1>Звёздный путь Таты</h1>
+          <p class="sub">Собери звёздные осколки и найди друзей по всей галактике.</p>
+        </div>
+
+        <div class="menu-actions">
+          <button id="btn-continue" class="btn primary xl">
+            <span class="btn-icon">▶</span>
+            <span class="btn-text">Продолжить</span>
+          </button>
+          <button id="btn-start" class="btn solid xl">
+            <span class="btn-icon">✦</span>
+            <span class="btn-text">Новая игра</span>
+          </button>
+          <div class="menu-grid">
+            <button id="btn-levels" class="btn tile">
+              <span class="tile-icon">🗺️</span>
+              <span class="tile-label">Уровни</span>
+            </button>
+            <button id="btn-roster" class="btn tile">
+              <span class="tile-icon">👥</span>
+              <span class="tile-label">Персонажи</span>
+            </button>
+            <button id="btn-sound" class="btn tile">
+              <span class="tile-icon" id="sound-icon">🔊</span>
+              <span class="tile-label" id="sound-label">Звук вкл</span>
+            </button>
+            <button id="btn-reset" class="btn tile danger">
+              <span class="tile-icon">↺</span>
+              <span class="tile-label">Сброс</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="menu-footer">
+          <span class="best-pill">★ Рекорд <b id="menu-best">0</b></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Character select -->
+    <div id="charselect" class="overlay hidden">
+      <div class="sheet wide">
+        <header class="sheet-head">
+          <div>
+            <span class="sheet-kicker">Шаг 1</span>
+            <h2>Выбери персонажа</h2>
+          </div>
+          <button id="btn-char-back" class="icon-btn" aria-label="Назад">✕</button>
+        </header>
+        <div id="char-list" class="char-list"></div>
+        <footer class="sheet-foot">
+          <button id="btn-char-go" class="btn primary xl">В путь ✦</button>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Level select -->
+    <div id="levelselect" class="overlay hidden">
+      <div class="sheet wide">
+        <header class="sheet-head">
+          <div>
+            <span class="sheet-kicker">Карта</span>
+            <h2>Выбери уровень</h2>
+          </div>
+          <button id="btn-level-back" class="icon-btn" aria-label="Назад">✕</button>
+        </header>
+        <div id="level-list" class="level-list"></div>
+      </div>
+    </div>
+
+    <!-- Roster (collection) -->
+    <div id="roster" class="overlay hidden">
+      <div class="sheet wide">
+        <header class="sheet-head">
+          <div>
+            <span class="sheet-kicker">Коллекция</span>
+            <h2>Команда BT21</h2>
+            <p class="sheet-sub" id="roster-count">Открыто: 1 / 7</p>
+          </div>
+          <button id="btn-roster-back" class="icon-btn" aria-label="Назад">✕</button>
+        </header>
+        <div id="roster-list" class="char-list"></div>
+      </div>
+    </div>
+
+    <!-- Confirm new game -->
+    <div id="confirm-new" class="overlay hidden">
+      <div class="sheet narrow">
+        <div class="sheet-symbol warn">!</div>
+        <h2>Начать новую игру?</h2>
+        <p class="sheet-text">Весь прогресс будет сброшен: персонажи, рекорд, звук и пройденные уровни.</p>
+        <footer class="sheet-foot row">
+          <button id="btn-confirm-no" class="btn solid">Отмена</button>
+          <button id="btn-confirm-yes" class="btn danger">Да, сбросить</button>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Story cutscene -->
+    <div id="story" class="overlay hidden story-overlay">
+      <div class="story-bar">
+        <div class="story-avatar" id="story-avatar">TATA</div>
+        <div class="story-bubble">
+          <div id="story-text" class="story-text"></div>
+        </div>
+      </div>
+      <div class="story-actions">
+        <button id="btn-story-skip" class="btn tiny ghost">Пропустить</button>
+        <button id="btn-story-next" class="btn primary">Далее ▸</button>
+      </div>
+    </div>
+
+    <!-- Pause -->
+    <div id="pause" class="overlay hidden">
+      <div class="sheet narrow">
+        <div class="sheet-symbol">⏸</div>
+        <h2>Пауза</h2>
+        <button id="btn-resume" class="btn primary xl">Продолжить</button>
+        <button id="btn-pause-restart" class="btn solid">Заново</button>
+        <button id="btn-pause-menu" class="btn ghost">В меню</button>
+      </div>
+    </div>
+
+    <!-- Level complete -->
+    <div id="complete" class="overlay hidden">
+      <div class="sheet narrow celebrate">
+        <div class="sheet-symbol good">★</div>
+        <h2 id="complete-title">Уровень пройден!</h2>
+        <p class="stat-line" id="complete-score">Счёт: 0</p>
+        <p class="stat-line muted" id="complete-best">Рекорд: 0</p>
+        <button id="btn-next" class="btn primary xl">Дальше →</button>
+      </div>
+    </div>
+
+    <!-- Game over -->
+    <div id="gameover" class="overlay hidden">
+      <div class="sheet narrow">
+        <div class="sheet-symbol bad">✕</div>
+        <h2>Поражение</h2>
+        <p class="sheet-text">Жизни закончились… Попробуй ещё раз!</p>
+        <button id="btn-retry" class="btn primary xl">Заново</button>
+        <button id="btn-go-menu" class="btn ghost">В меню</button>
+      </div>
+    </div>
+
+    <!-- Mobile controls -->
+    <div id="mobile-controls" class="hidden">
+      <div class="m-left">
+        <button class="m-btn" data-key="left" aria-label="Влево">◀</button>
+        <button class="m-btn" data-key="right" aria-label="Вправо">▶</button>
+      </div>
+      <div class="m-right">
+        <button class="m-btn m-jump" data-key="jump" aria-label="Прыжок">▲</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="module" src="main.js"></script>
+</body>
+</html>
